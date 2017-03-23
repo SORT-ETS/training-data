@@ -1,0 +1,5 @@
+classes= <classes>
+train  = <train_location>
+valid  = <test_location>
+names = <names_location>
+backup = backup/
