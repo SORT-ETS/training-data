@@ -27,15 +27,18 @@ echo ""
 
 echo "Generating train and test set ..."
 # This is a cheap way to split data
-find $PWD/data/labels | grep [1-9].txt > $TRAIN_LOCATION
-find $PWD/data/labels | grep 0.txt > $TEST_LOCATION
+find $PWD/data/images | grep --include=*.{jpg,JPG} [1-9]\\. > $TRAIN_LOCATION
+find $PWD/data/images | grep --include=*.{jpg,JPG} [0]\\. > $TEST_LOCATION
 echo "Done."
 echo ""
 
 
 echo "Generating obj.names ..."
-ls -l ./data/labels/ | grep ^d > cfg/label.bak
-awk '{ print $9}' cfg/label.bak > $NAMES_LOCATION
+ls -l ./data/classes/ | tail --line=+2  > cfg/label.bak
+awk '{ print $11}' cfg/label.bak | cut -f1 -d'.' > $NAMES_LOCATION
+
+echo "Classes found:"
+cat $NAMES_LOCATION
 echo "Done."
 echo ""
 
@@ -52,6 +55,16 @@ echo ""
 rm cfg/*.bak
 
 
+echo "Backup older Darknet configuration ..."
+mv -f /usr/src/darknet/yolo-sort.cfg /usr/src/darknet/yolo-sort.cfg-old
+
+
+echo "Copying configs to Darknet installation ..."
+cp -f $CFG_LOCATION /usr/src/darknet/
+echo "Done."
+echo ""
+
+
 echo "Downloading pre-trained network ..."
 if [ ! -s $NEURAL_LOCATION ]; then
     wget -O $NEURAL_LOCATION http://pjreddie.com/media/files/darknet19_448.conv.23
@@ -63,4 +76,6 @@ echo ""
 
 
 echo "Configs files generated you can now run this in the Darknet folder"
-echo "./darknet detector train $DATA_LOCATION $CFG_LOCATION $PWD"
+echo "cd ../../darknet && ./darknet detector train $DATA_LOCATION $CFG_LOCATION $PWD"
+echo "Or test the detector on some data"
+echo "cd ../../darknet && ./darknet detect yolo-sort.cfg backup/yolo-sort_4000.weights /usr/src/server/training-data/data/images/cup_paper/IMG_1940.JPG"
